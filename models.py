@@ -12,7 +12,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
 
-    items = relationship("Item", back_populates="item")
+    items = relationship("Item", back_populates="product")
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -25,7 +25,7 @@ class Item(Base):
 
 
     product_id = Column(Integer, ForeignKey("products.id"))
-    product = relationship("Product", back_populates="products")
+    product = relationship("Product", back_populates="items")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
