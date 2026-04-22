@@ -1,10 +1,18 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from typing import List
 from sqlalchemy.orm import Session
-
 from database import Base, engine, get_db
+from fastapi.security import OAuth2PasswordRequestForm
 import models
 import schemas
+from auth import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    hash_password,
+    ACCESS_TOKEN_EXPIRE_MINUTES,   
+)
+from datetime import timedelta
 
 app = FastAPI()
 
@@ -14,6 +22,48 @@ Base.metadata.create_all(bind=engine)
 @app.get("/")
 def root():
     return {"message": "Hello world!"}
+
+
+# -------- Authentication --------
+@app.post("/auth/register", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
+def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.User).filter(models.User.username == payload.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    db_user = models.User(
+        username=payload.username,
+        hashed_password=hash_password(payload.password),
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+@app.post("/auth/token", response_model=schemas.Token)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/auth/me", response_model=schemas.UserOut)
+def read_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
 
 
 # --- Products ---
@@ -102,51 +152,5 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     if not it:
         raise HTTPException(status_code=404, detail="Item not found")
     db.delete(it)
-    db.commit()
-    return None
-
-
-# --- Users ---
-@app.post("/users", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
-def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = models.User(username=payload.username, hashed_password=payload.hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-
-@app.get("/users", response_model=List[schemas.User])
-def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(models.User).offset(skip).limit(limit).all()
-
-
-@app.get("/users/{user_id}", response_model=schemas.User)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    u = db.query(models.User).filter(models.User.id == user_id).first()
-    if not u:
-        raise HTTPException(status_code=404, detail="User not found")
-    return u
-
-
-@app.put("/users/{user_id}", response_model=schemas.User)
-def update_user(user_id: int, payload: schemas.UserCreate, db: Session = Depends(get_db)):
-    u = db.query(models.User).filter(models.User.id == user_id).first()
-    if not u:
-        raise HTTPException(status_code=404, detail="User not found")
-    u.username = payload.username
-    u.hashed_password = payload.hashed_password
-    db.add(u)
-    db.commit()
-    db.refresh(u)
-    return u
-
-
-@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    u = db.query(models.User).filter(models.User.id == user_id).first()
-    if not u:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(u)
     db.commit()
     return None

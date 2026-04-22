@@ -1,3 +1,7 @@
 fastapi[standard]
 sqlalchemy
 pymysql
+pyjwt
+pwdlib
+python-multipart
+pwdlib[argon2]
