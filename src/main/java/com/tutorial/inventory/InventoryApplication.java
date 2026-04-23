@@ -1,13 +1,13 @@
-package com.tutorial.iNventory;
+package com.tutorial.inventory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class INventoryApplication {
+public class InventoryApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(INventoryApplication.class, args);
+		SpringApplication.run(InventoryApplication.class, args);
 	}
 
 }
