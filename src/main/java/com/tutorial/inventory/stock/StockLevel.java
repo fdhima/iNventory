@@ -43,6 +43,9 @@ public class StockLevel {
     @Column(nullable = false)
     private int level;
 
+    @Column(nullable = false)
+    private int threshold;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -53,46 +56,24 @@ public class StockLevel {
 
     public StockLevel() {}
 
-    public StockLevel(Product product, Location location, int level) {
+    public StockLevel(Product product, Location location, int level, int threshold) {
         this.product = product;
         this.location = location;
         this.level = level;
+        this.threshold = threshold;
     }
 
-    public UUID getId() {
-        return id;
-    }
+    public UUID getId() { return id; }
+    public Product getProduct() { return product; }
+    public Location getLocation() { return location; }
+    public int getLevel() { return level; }
+    public int getThreshold() { return threshold; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    public Product getProduct() {
-        return product;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    public void setLevel(int level) {
-        this.level = level;
-    }
+    public void setProduct(Product product) { this.product = product; }
+    public void setLocation(Location location) { this.location = location; }
+    public void setLevel(int level) { this.level = level; }
+    public void setThreshold(int threshold) { this.threshold = threshold; }
 
 }
