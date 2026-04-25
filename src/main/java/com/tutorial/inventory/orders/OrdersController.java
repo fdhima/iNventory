@@ -1,9 +1,11 @@
 package com.tutorial.inventory.orders;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,8 +31,10 @@ public class OrdersController {
     }
 
     @GetMapping
-    public List<Orders> getAllOrders() {
-        return ordersRepo.findAll();
+    public Page<Orders> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ordersRepo.findAll(PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")

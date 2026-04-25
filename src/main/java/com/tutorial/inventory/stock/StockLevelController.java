@@ -1,9 +1,11 @@
 package com.tutorial.inventory.stock;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,8 +31,10 @@ public class StockLevelController {
     }
 
     @GetMapping
-    public List<StockLevel> getAllStockLevels() {
-        return stockLevelRepo.findAll();
+    public Page<StockLevel> getAllStockLevels(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return stockLevelRepo.findAll(PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")
